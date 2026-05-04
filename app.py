@@ -121,6 +121,27 @@ if menu == "Upload":
 
 elif menu == "Base":
     st.title("📄 Base de Dados")
+
+    df = carregar_dados()
+
+    if df.empty:
+        st.warning("Sem dados ainda")
+    else:
+        for i, row in df.iterrows():
+            col1, col2, col3, col4, col5, col6 = st.columns(6)
+
+            col1.write(row['id'])
+            col2.write(row['fornecedor'])
+            col3.write(row['cnpj'])
+            col4.write(row['data'])
+            col5.write(f"R$ {row['valor']:.2f}")
+
+            if col6.button("❌ Excluir", key=row['id']):
+                c.execute("DELETE FROM notas WHERE id = ?", (row['id'],))
+                conn.commit()
+                st.success("Nota excluída!")
+                st.rerun()
+    st.title("📄 Base de Dados")
     df = carregar_dados()
     st.dataframe(df, use_container_width=True)
 
