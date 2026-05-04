@@ -146,6 +146,91 @@ elif menu == "Base":
     st.dataframe(df, use_container_width=True)
 
 elif menu == "Dashboard":
+    st.title("📊 Dashboard de Compras")
+
+    df = carregar_dados()
+
+    if df.empty:
+        st.warning("Sem dados ainda.")
+    else:
+        # -----------------------
+        # TRATAMENTO
+        # -----------------------
+        df['data'] = pd.to_datetime(df['data'], errors='coerce')
+        df = df.dropna(subset=['data'])
+
+        # -----------------------
+        # FILTROS
+        # -----------------------
+        st.sidebar.subheader("Filtros")
+
+        data_inicio = st.sidebar.date_input("Data início", df['data'].min())
+        data_fim = st.sidebar.date_input("Data fim", df['data'].max())
+
+        fornecedores = st.sidebar.multiselect(
+            "Fornecedor",
+            df['fornecedor'].unique(),
+            default=df['fornecedor'].unique()
+        )
+
+        df = df[
+            (df['data'] >= pd.to_datetime(data_inicio)) &
+            (df['data'] <= pd.to_datetime(data_fim)) &
+            (df['fornecedor'].isin(fornecedores))
+        ]
+
+        # -----------------------
+        # KPIs
+        # -----------------------
+        total = df['valor'].sum()
+        qtd_notas = len(df)
+        ticket_medio = total / qtd_notas if qtd_notas > 0 else 0
+
+        col1, col2, col3 = st.columns(3)
+
+        col1.metric("💰 Total Comprado", f"R$ {total:,.2f}")
+        col2.metric("📄 Nº de Notas", qtd_notas)
+        col3.metric("📊 Ticket Médio", f"R$ {ticket_medio:,.2f}")
+
+        st.divider()
+
+        # -----------------------
+        # EVOLUÇÃO MENSAL
+        # -----------------------
+        df['mes'] = df['data'].dt.to_period('M')
+
+        st.subheader("📈 Evolução de Compras (Mensal)")
+        st.bar_chart(df.groupby('mes')['valor'].sum())
+
+        # -----------------------
+        # TOP FORNECEDORES
+        # -----------------------
+        st.subheader("🏆 Top Fornecedores")
+
+        top_forn = df.groupby('fornecedor')['valor'].sum().sort_values(ascending=False).head(10)
+        st.bar_chart(top_forn)
+
+        # -----------------------
+        # PARTICIPAÇÃO (%)
+        # -----------------------
+        st.subheader("📊 Participação por Fornecedor (%)")
+
+        participacao = (df.groupby('fornecedor')['valor'].sum() / total * 100).sort_values(ascending=False)
+
+        st.dataframe(
+            participacao.reset_index().rename(columns={"valor": "%"}),
+            use_container_width=True
+        )
+
+        # -----------------------
+        # CONCENTRAÇÃO
+        # -----------------------
+        st.subheader("⚠️ Concentração de Compras")
+
+        top3 = top_forn.head(3).sum()
+        concentracao = (top3 / total) * 100 if total > 0 else 0
+
+        st.metric("Top 3 fornecedores (%)", f"{concentracao:.2f}%")
     st.title("📊 Dashboard")
 
     df = carregar_dados()
