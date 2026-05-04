@@ -34,6 +34,43 @@ def extrair_dados(texto):
     valor = 0
     data = ""
 
+    # -----------------------
+    # CNPJ
+    # -----------------------
+    cnpj_match = re.search(r"\d{2}\.\d{3}\.\d{3}/\d{4}-\d{2}", texto)
+    if cnpj_match:
+        cnpj = cnpj_match.group()
+
+    # -----------------------
+    # DATA (pega a primeira válida)
+    # -----------------------
+    datas = re.findall(r"\d{2}/\d{2}/\d{4}", texto)
+    if datas:
+        data = datas[0]
+
+    # -----------------------
+    # FORNECEDOR (seu padrão)
+    # -----------------------
+    for linha in texto.split("\n"):
+        if "RECEBEMOS DE" in linha:
+            fornecedor = linha.replace("RECEBEMOS DE", "").split("OS PRODUTOS")[0].strip()
+
+    # -----------------------
+    # VALOR TOTAL (melhorado)
+    # -----------------------
+    valores = re.findall(r"R\$\s*([\d\.\,]+)", texto)
+
+    if valores:
+        # pega o maior valor (geralmente é o total da nota)
+        valores_float = [float(v.replace('.', '').replace(',', '.')) for v in valores]
+        valor = max(valores_float)
+
+    return fornecedor, cnpj, data, valor
+    fornecedor = ""
+    cnpj = ""
+    valor = 0
+    data = ""
+
     cnpj_match = re.search(r"\d{2}\.\d{3}\.\d{3}/\d{4}-\d{2}", texto)
     if cnpj_match:
         cnpj = cnpj_match.group()
