@@ -109,26 +109,24 @@ def extrair_dados(texto):
         except:
             pass
 
-    # FORNECEDOR
-    # FORNECEDOR (mais inteligente)
-linhas = texto.split("\n")
+    # -----------------------
+    # FORNECEDOR INTELIGENTE
+    # -----------------------
+    linhas = texto.split("\n")
 
-for i, linha in enumerate(linhas):
+    for i, linha in enumerate(linhas):
 
-    # padrão 1 (mais comum)
-    if "RECEBEMOS DE" in linha.upper():
-        fornecedor = linha.upper().replace("RECEBEMOS DE", "").split("OS PRODUTOS")[0].strip()
-        break
-
-    # padrão 2: nome da empresa perto do CNPJ
-    if "CNPJ" in linha.upper():
-        if i > 0:
-            fornecedor = linhas[i-1].strip()
+        if "RECEBEMOS DE" in linha.upper():
+            fornecedor = linha.upper().replace("RECEBEMOS DE", "").split("OS PRODUTOS")[0].strip()
             break
 
-# fallback (caso não encontre nada)
-if fornecedor == "":
-    fornecedor = linhas[0].strip() if linhas else "Não identificado"
+        if "CNPJ" in linha.upper():
+            if i > 0:
+                fornecedor = linhas[i-1].strip()
+                break
+
+    if fornecedor == "":
+        fornecedor = linhas[0].strip() if linhas else "Não identificado"
 
     return fornecedor, cnpj, data, valor, icms, ipi, tributos_aprox
 
