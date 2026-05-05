@@ -40,16 +40,17 @@ def extrair_texto_pdf(file):
         texto = extrair_texto_ocr(file)
 
     return texto
+    
 def extrair_texto_ocr(file):
     url = "https://api.ocr.space/parse/image"
 
     payload = {
-        'apikey': 'K88717938688957',
+        'apikey': 'SUA_API_KEY_AQUI',
         'language': 'por'
     }
 
     files = {
-        'file': file
+        'file': file.getvalue()
     }
 
     response = requests.post(url, files=files, data=payload)
