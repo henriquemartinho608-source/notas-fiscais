@@ -176,7 +176,7 @@ elif menu == "Base":
             col5.write(f"R$ {row['valor']:.2f}")
 
             if col6.button("❌ Excluir", key=row['id']):
-                c.execute("DELETE FROM notas WHERE id = ?", (row['id'],))
+                c.execute("DELETE FROM notas2 WHERE id = ?", (row['id'],))
                 conn.commit()
                 st.success("Nota excluída!")
                 st.rerun()
