@@ -10,18 +10,20 @@ st.set_page_config(page_title="Gestão de Compras", layout="wide")
 conn = sqlite3.connect("notas.db", check_same_thread=False)
 c = conn.cursor()
 
-c.execute('''
-CREATE TABLE IF NOT EXISTS notas (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    fornecedor TEXT,
-    cnpj TEXT,
-    data TEXT,
-    valor REAL,
-    icms REAL,
-    ipi REAL,
-    tributos_aprox REAL
+c.execute(
+    """
+    CREATE TABLE IF NOT EXISTS notas (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        fornecedor TEXT,
+        cnpj TEXT,
+        data TEXT,
+        valor REAL,
+        icms REAL,
+        ipi REAL,
+        tributos_aprox REAL
+    )
+    """
 )
-''')
 
 def extrair_texto_pdf(file):
     texto = ""
