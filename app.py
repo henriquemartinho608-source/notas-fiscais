@@ -197,7 +197,7 @@ elif menu == "Dashboard":
         top_forn = df.groupby('fornecedor')['valor'].sum().sort_values(ascending=False).head(10)
         st.bar_chart(top_forn)
 
-        # 👇 IMPOSTOS
+        # 💰 IMPOSTOS
         st.subheader("💰 Impostos Totais")
 
         total_impostos = df['tributos_aprox'].sum()
