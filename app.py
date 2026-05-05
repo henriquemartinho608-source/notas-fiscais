@@ -248,81 +248,69 @@ elif menu == "Dashboard":
 
         st.divider()
 
-        # -----------------------
+               # -----------------------
         # 💰 IMPOSTOS
         # -----------------------
         st.subheader("💰 Análise de Impostos")
 
-total_impostos = df['tributos_aprox'].sum()
-total_geral = df['valor'].sum()
+        total_impostos = df['tributos_aprox'].sum()
+        total_geral = df['valor'].sum()
 
-percentual = (total_impostos / total_geral * 100) if total_geral > 0 else 0
+        percentual = (total_impostos / total_geral * 100) if total_geral > 0 else 0
 
-col1, col2, col3 = st.columns(3)
+        col1, col2, col3 = st.columns(3)
+        col1.metric("Total em Compras", f"R$ {total_geral:,.2f}")
+        col2.metric("Total em Tributos", f"R$ {total_impostos:,.2f}")
+        col3.metric("Carga Tributária (%)", f"{percentual:.2f}%")
 
-col1.metric("Total em Compras", f"R$ {total_geral:,.2f}")
-col2.metric("Total em Tributos", f"R$ {total_impostos:,.2f}")
-col3.metric("Carga Tributária (%)", f"{percentual:.2f}%")
-st.subheader("🚨 Fornecedores com Carga Tributária Fora do Padrão")
+        # -----------------------
+        # 🚨 FORA DO PADRÃO
+        # -----------------------
+        st.subheader("🚨 Fornecedores com Carga Tributária Fora do Padrão")
 
-# cálculo por fornecedor
-df_forn = df.groupby('fornecedor').agg({
-    'valor': 'sum',
-    'tributos_aprox': 'sum'
-}).reset_index()
+        df_forn = df.groupby('fornecedor').agg({
+            'valor': 'sum',
+            'tributos_aprox': 'sum'
+        }).reset_index()
 
-df_forn['carga_%'] = (df_forn['tributos_aprox'] / df_forn['valor']) * 100
+        df_forn['carga_%'] = (df_forn['tributos_aprox'] / df_forn['valor']) * 100
 
-# média geral
-media_geral = df_forn['carga_%'].mean()
+        media_geral = df_forn['carga_%'].mean()
+        limite = media_geral * 1.2
 
-# definir limite (ex: 20% acima da média)
-limite = media_geral * 1.2
+        fora_padrao = df_forn[df_forn['carga_%'] > limite].sort_values(by='carga_%', ascending=False)
 
-# filtrar fora do padrão
-fora_padrao = df_forn[df_forn['carga_%'] > limite].sort_values(by='carga_%', ascending=False)
+        st.write(f"Média geral: {media_geral:.2f}%")
 
-st.write(f"Média geral de carga tributária: {media_geral:.2f}%")
+        if fora_padrao.empty:
+            st.success("Nenhum fornecedor fora do padrão 👌")
+        else:
+            st.warning("Fornecedores com carga acima do normal:")
+            st.dataframe(fora_padrao, use_container_width=True)
 
-if fora_padrao.empty:
-    st.success("Nenhum fornecedor fora do padrão 👌")
-else:
-    st.warning("Fornecedores com carga tributária acima do normal:")
+        # -----------------------
+        # 💡 ECONOMIA POTENCIAL
+        # -----------------------
+        st.subheader("💡 Potencial de Economia")
 
-    st.dataframe(fora_padrao, use_container_width=True)
-    st.subheader("💡 Potencial de Economia em Impostos")
+        melhor_carga = df_forn['carga_%'].min()
 
-# Agrupar por fornecedor
-df_forn = df.groupby('fornecedor').agg({
-    'valor': 'sum',
-    'tributos_aprox': 'sum'
-}).reset_index()
+        df_forn['economia_potencial'] = (
+            (df_forn['carga_%'] - melhor_carga) / 100
+        ) * df_forn['valor']
 
-# Calcular carga %
-df_forn['carga_%'] = (df_forn['tributos_aprox'] / df_forn['valor']) * 100
+        economia_total = df_forn['economia_potencial'].sum()
 
-# Benchmark = melhor fornecedor (menor carga)
-melhor_carga = df_forn['carga_%'].min()
+        st.metric("💰 Economia Potencial Total", f"R$ {economia_total:,.2f}")
+        st.write(f"Melhor carga encontrada: {melhor_carga:.2f}%")
 
-# Calcular economia potencial
-df_forn['economia_potencial'] = (
-    (df_forn['carga_%'] - melhor_carga) / 100
-) * df_forn['valor']
+        st.subheader("📊 Onde economizar mais")
+        top_economia = df_forn.sort_values(by='economia_potencial', ascending=False)
+        st.dataframe(top_economia, use_container_width=True)
 
-# Somar economia total
-economia_total = df_forn['economia_potencial'].sum()
-
-st.metric("💰 Economia Potencial Total", f"R$ {economia_total:,.2f}")
-
-st.write(f"Melhor carga tributária encontrada: {melhor_carga:.2f}%")
-
-# Mostrar quem mais gera economia
-st.subheader("📊 Onde você pode economizar mais")
-
-top_economia = df_forn.sort_values(by='economia_potencial', ascending=False)
-
-st.dataframe(top_economia, use_container_width=True)
-
+        # -----------------------
+        # 📊 IMPOSTOS POR FORNECEDOR
+        # -----------------------
         st.subheader("📊 Impostos por Fornecedor")
         impostos_forn = df.groupby('fornecedor')['tributos_aprox'].sum().sort_values(ascending=False).head(10)
         st.bar_chart(impostos_forn)
