@@ -4,6 +4,20 @@ import pandas as pd
 import sqlite3
 import re
 import requests
+def buscar_cnpj(cnpj):
+    try:
+        cnpj_limpo = cnpj.replace(".", "").replace("/", "").replace("-", "")
+        url = f"https://www.receitaws.com.br/v1/cnpj/{cnpj_limpo}"
+
+        response = requests.get(url)
+        data = response.json()
+
+        if data.get('status') == 'OK':
+            return data.get('nome', "")
+        else:
+            return ""
+    except:
+        return ""
 
 st.set_page_config(page_title="Gestão de Compras", layout="wide")
 
@@ -110,12 +124,20 @@ def extrair_dados(texto):
             pass
 
     # -----------------------
-    # FORNECEDOR INTELIGENTE
-    # -----------------------
+# FORNECEDOR VIA CNPJ (API)
+# -----------------------
+fornecedor = ""
+
+if cnpj:
+    fornecedor_api = buscar_cnpj(cnpj)
+    if fornecedor_api:
+        fornecedor = fornecedor_api
+
+# fallback (caso não encontre)
+if fornecedor == "":
     linhas = texto.split("\n")
 
     for i, linha in enumerate(linhas):
-
         if "RECEBEMOS DE" in linha.upper():
             fornecedor = linha.upper().replace("RECEBEMOS DE", "").split("OS PRODUTOS")[0].strip()
             break
@@ -126,7 +148,7 @@ def extrair_dados(texto):
                 break
 
     if fornecedor == "":
-        fornecedor = linhas[0].strip() if linhas else "Não identificado"
+        fornecedor = "Não identificado"
 
     return fornecedor, cnpj, data, valor, icms, ipi, tributos_aprox
 
