@@ -37,13 +37,11 @@ def extrair_texto_pdf(file):
         texto = extrair_texto_ocr(file)
 
     return texto
- def extrair_texto_ocr(file):
-    import requests
-
+def extrair_texto_ocr(file):
     url = "https://api.ocr.space/parse/image"
 
     payload = {
-        'apikey': 'K88717938688957',
+        'apikey': 'SUA_API_KEY_AQUI',
         'language': 'por'
     }
 
@@ -57,13 +55,7 @@ def extrair_texto_pdf(file):
     try:
         return result['ParsedResults'][0]['ParsedText']
     except:
-        return ""   
-    texto = ""
-    with pdfplumber.open(file) as pdf:
-        for page in pdf.pages:
-            texto += page.extract_text() or ""
-    return texto
-
+        return ""
 def extrair_dados(texto):
     fornecedor = ""
     cnpj = ""
