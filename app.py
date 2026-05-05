@@ -150,8 +150,8 @@ tributos_aprox = st.number_input("Tributos Aproximados", value=float(tributos_ap
             valor = st.number_input("Valor", value=float(valor), key=file.name+"v")
 
             if st.button("Salvar", key=file.name):
-                salvar_dados((fornecedor, cnpj, data, valor, icms, ipi, tributos_aprox))
-                st.success("Salvo!")
+            salvar_dados((fornecedor, cnpj, data, valor, icms, ipi, tributos_aprox))
+            st.success("Salvo!")
 
 elif menu == "Base":
     st.title("📄 Base de Dados")
