@@ -12,7 +12,7 @@ c = conn.cursor()
 
 c.execute(
     """
-    CREATE TABLE IF NOT EXISTS notas (
+    CREATE TABLE IF NOT EXISTS notas2 (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         fornecedor TEXT,
         cnpj TEXT,
@@ -118,14 +118,14 @@ def extrair_dados(texto):
 
 def salvar_dados(dados):
     c.execute("""
-    INSERT INTO notas 
+    INSERT INTO notas2 
     (fornecedor, cnpj, data, valor, icms, ipi, tributos_aprox)
     VALUES (?, ?, ?, ?, ?, ?, ?)
     """, dados)
     conn.commit()
 
 def carregar_dados():
-    return pd.read_sql("SELECT * FROM notas", conn)
+    return pd.read_sql("SELECT * FROM notas2", conn)
 
 menu = st.sidebar.selectbox("Menu", ["Upload", "Base", "Dashboard"])
 
