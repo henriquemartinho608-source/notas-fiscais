@@ -133,7 +133,11 @@ if menu == "Upload":
     st.title("📤 Upload de Notas")
 
     arquivos = st.file_uploader("Envie PDFs", type=["pdf"], accept_multiple_files=True)
-
+arquivos = st.file_uploader(
+    "Envie as notas fiscais (PDF)",
+    type=["pdf"],
+    accept_multiple_files=True
+)
 if arquivos:
     for file in arquivos:
         texto = extrair_texto_pdf(file)
