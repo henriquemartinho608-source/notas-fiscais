@@ -45,7 +45,7 @@ def extrair_texto_ocr(file):
     url = "https://api.ocr.space/parse/image"
 
     payload = {
-        'apikey': 'SUA_API_KEY_AQUI',
+        'apikey': 'K88717938688957',
         'language': 'por'
     }
 
@@ -281,7 +281,6 @@ elif menu == "Dashboard":
         st.subheader("Top Fornecedores")
 st.bar_chart(df.groupby('fornecedor')['valor'].sum().sort_values(ascending=False).head(10))
 
-# 👇 COLE AQUI 👇
 st.subheader("💰 Impostos Totais")
 
 total_impostos = df['tributos_aprox'].sum()
