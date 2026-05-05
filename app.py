@@ -132,27 +132,31 @@ menu = st.sidebar.selectbox("Menu", ["Upload", "Base", "Dashboard"])
 if menu == "Upload":
     st.title("📤 Upload de Notas")
 
-    arquivos = st.file_uploader("Envie as notas fiscais aqui", type=["pdf"], accept_multiple_files=True)
+    arquivos = st.file_uploader(
+        "Envie PDFs",
+        type=["pdf"],
+        accept_multiple_files=True
+    )
 
-if arquivos:
-    for file in arquivos:
-        texto = extrair_texto_pdf(file)
-        fornecedor, cnpj, data, valor, icms, ipi, tributos_aprox = extrair_dados(texto)
+    if arquivos:
+        for file in arquivos:
+            texto = extrair_texto_pdf(file)
+            fornecedor, cnpj, data, valor, icms, ipi, tributos_aprox = extrair_dados(texto)
 
-        st.subheader(file.name)
+            st.subheader(file.name)
 
-        fornecedor = st.text_input("Fornecedor", fornecedor, key=file.name+"f")
-        cnpj = st.text_input("CNPJ", cnpj, key=file.name+"c")
-        data = st.text_input("Data", data, key=file.name+"d")
-        valor = st.number_input("Valor", value=float(valor), key=file.name+"v")
+            fornecedor = st.text_input("Fornecedor", fornecedor, key=file.name+"f")
+            cnpj = st.text_input("CNPJ", cnpj, key=file.name+"c")
+            data = st.text_input("Data", data, key=file.name+"d")
+            valor = st.number_input("Valor", value=float(valor), key=file.name+"v")
 
-        icms = st.number_input("ICMS", value=float(icms), key=file.name+"i")
-        ipi = st.number_input("IPI", value=float(ipi), key=file.name+"ipi")
-        tributos_aprox = st.number_input("Tributos Aproximados", value=float(tributos_aprox), key=file.name+"t")
+            icms = st.number_input("ICMS", value=float(icms), key=file.name+"i")
+            ipi = st.number_input("IPI", value=float(ipi), key=file.name+"ipi")
+            tributos_aprox = st.number_input("Tributos Aproximados", value=float(tributos_aprox), key=file.name+"t")
 
-        if st.button("Salvar", key=file.name):
-            salvar_dados((fornecedor, cnpj, data, valor, icms, ipi, tributos_aprox))
-            st.success("Salvo!")
+            if st.button("Salvar", key=file.name):
+                salvar_dados((fornecedor, cnpj, data, valor, icms, ipi, tributos_aprox))
+                st.success("Salvo!")
 
 elif menu == "Base":
     st.title("📄 Base de Dados")
