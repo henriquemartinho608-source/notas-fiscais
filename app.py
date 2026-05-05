@@ -123,7 +123,51 @@ def extrair_dados(texto):
         except:
             pass
 
-def processar_nota(texto, cnpj, data, valor, icms, ipi, tributos_aprox):
+def extrair_dados(texto):
+    fornecedor = ""
+    cnpj = ""
+    valor = 0
+    data = ""
+    icms = 0
+    ipi = 0
+    tributos_aprox = 0
+
+    cnpj_match = re.search(r"\d{2}\.\d{3}\.\d{3}/\d{4}-\d{2}", texto)
+    if cnpj_match:
+        cnpj = cnpj_match.group()
+
+    datas = re.findall(r"\d{2}/\d{2}/\d{4}", texto)
+    if datas:
+        data = datas[0]
+
+    valores = re.findall(r"[\d]{1,3}(?:\.\d{3})*,\d{2}", texto)
+    if valores:
+        valores_float = [float(v.replace('.', '').replace(',', '.')) for v in valores]
+        valor = max(valores_float)
+
+    icms_match = re.search(r"ICMS.*?([\d\.,]+)", texto)
+    if icms_match:
+        try:
+            icms = float(icms_match.group(1).replace('.', '').replace(',', '.'))
+        except:
+            pass
+
+    ipi_match = re.search(r"IPI.*?([\d\.,]+)", texto)
+    if ipi_match:
+        try:
+            ipi = float(ipi_match.group(1).replace('.', '').replace(',', '.'))
+        except:
+            pass
+
+    trib_match = re.search(r"R\$\s*([\d\.,]+)", texto)
+    if trib_match:
+        try:
+            tributos_aprox = float(trib_match.group(1).replace('.', '').replace(',', '.'))
+        except:
+            pass
+
+    # 🔥 ESSA LINHA ESTAVA FALTANDO
+    return fornecedor, cnpj, data, valor, icms, ipi, tributos_aprox
 
     fornecedor = ""
 
