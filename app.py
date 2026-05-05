@@ -11,7 +11,6 @@ conn = sqlite3.connect("notas.db", check_same_thread=False)
 c = conn.cursor()
 
 c.execute('''
-c.execute('''
 CREATE TABLE IF NOT EXISTS notas (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     fornecedor TEXT,
