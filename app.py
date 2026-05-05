@@ -3,6 +3,7 @@ import pdfplumber
 import pandas as pd
 import sqlite3
 import re
+import requests
 
 st.set_page_config(page_title="Gestão de Compras", layout="wide")
 
@@ -22,6 +23,41 @@ CREATE TABLE IF NOT EXISTS notas (
 conn.commit()
 
 def extrair_texto_pdf(file):
+    texto = ""
+
+    try:
+        with pdfplumber.open(file) as pdf:
+            for page in pdf.pages:
+                texto += page.extract_text() or ""
+    except:
+        pass
+
+    # Se falhar ou vier vazio → usa OCR
+    if len(texto.strip()) < 50:
+        texto = extrair_texto_ocr(file)
+
+    return texto
+ def extrair_texto_ocr(file):
+    import requests
+
+    url = "https://api.ocr.space/parse/image"
+
+    payload = {
+        'apikey': 'K88717938688957',
+        'language': 'por'
+    }
+
+    files = {
+        'file': file
+    }
+
+    response = requests.post(url, files=files, data=payload)
+    result = response.json()
+
+    try:
+        return result['ParsedResults'][0]['ParsedText']
+    except:
+        return ""   
     texto = ""
     with pdfplumber.open(file) as pdf:
         for page in pdf.pages:
