@@ -123,33 +123,51 @@ def extrair_dados(texto):
         except:
             pass
 
+    def processar_nota(texto, cnpj, data, valor, icms, ipi, tributos_aprox):
+
     # -----------------------
-# FORNECEDOR VIA CNPJ (API)
-# -----------------------
-fornecedor = ""
+    # FORNECEDOR VIA CNPJ (API)
+    # -----------------------
+    fornecedor = ""
 
-if cnpj:
-    fornecedor_api = buscar_cnpj(cnpj)
-    if fornecedor_api:
-        fornecedor = fornecedor_api
+    if cnpj:
+        fornecedor_api = buscar_cnpj(cnpj)
+        if fornecedor_api:
+            fornecedor = fornecedor_api
 
-# fallback (caso não encontre)
-if fornecedor == "":
-    linhas = texto.split("\n")
+    # -----------------------
+    # FALLBACK (texto da nota)
+    # -----------------------
+    if fornecedor == "":
+        linhas = texto.split("\n")
 
-    for i, linha in enumerate(linhas):
-        if "RECEBEMOS DE" in linha.upper():
-            fornecedor = linha.upper().replace("RECEBEMOS DE", "").split("OS PRODUTOS")[0].strip()
-            break
+        for i, linha in enumerate(linhas):
 
-        if "CNPJ" in linha.upper():
-            if i > 0:
-                fornecedor = linhas[i-1].strip()
+            # caso comum: "RECEBEMOS DE ..."
+            if "RECEBEMOS DE" in linha.upper():
+                fornecedor = (
+                    linha.upper()
+                    .replace("RECEBEMOS DE", "")
+                    .split("OS PRODUTOS")[0]
+                    .strip()
+                )
                 break
 
+            # fallback por linha anterior ao CNPJ
+            if "CNPJ" in linha.upper():
+                if i > 0:
+                    fornecedor = linhas[i - 1].strip()
+                    break
+
+    # -----------------------
+    # SE AINDA NÃO ENCONTROU
+    # -----------------------
     if fornecedor == "":
         fornecedor = "Não identificado"
 
+    # -----------------------
+    # RETORNO FINAL
+    # -----------------------
     return fornecedor, cnpj, data, valor, icms, ipi, tributos_aprox
 
 def salvar_dados(dados):
