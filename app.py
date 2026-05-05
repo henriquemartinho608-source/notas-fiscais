@@ -11,16 +11,18 @@ conn = sqlite3.connect("notas.db", check_same_thread=False)
 c = conn.cursor()
 
 c.execute('''
+c.execute('''
 CREATE TABLE IF NOT EXISTS notas (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     fornecedor TEXT,
     cnpj TEXT,
     data TEXT,
-    valor REAL
+    valor REAL,
+    icms REAL,
+    ipi REAL,
+    tributos_aprox REAL
 )
 ''')
-
-conn.commit()
 
 def extrair_texto_pdf(file):
     texto = ""
@@ -41,7 +43,7 @@ def extrair_texto_ocr(file):
     url = "https://api.ocr.space/parse/image"
 
     payload = {
-        'apikey': 'SUA_API_KEY_AQUI',
+        'apikey': 'K88717938688957',
         'language': 'por'
     }
 
@@ -61,64 +63,63 @@ def extrair_dados(texto):
     cnpj = ""
     valor = 0
     data = ""
+    icms = 0
+    ipi = 0
+    tributos_aprox = 0
 
-    # -----------------------
     # CNPJ
-    # -----------------------
     cnpj_match = re.search(r"\d{2}\.\d{3}\.\d{3}/\d{4}-\d{2}", texto)
     if cnpj_match:
         cnpj = cnpj_match.group()
 
-    # -----------------------
-    # DATA (pega a primeira válida)
-    # -----------------------
+    # DATA
     datas = re.findall(r"\d{2}/\d{2}/\d{4}", texto)
     if datas:
         data = datas[0]
 
-    # -----------------------
-    # FORNECEDOR (seu padrão)
-    # -----------------------
-    for linha in texto.split("\n"):
-        if "RECEBEMOS DE" in linha:
-            fornecedor = linha.replace("RECEBEMOS DE", "").split("OS PRODUTOS")[0].strip()
-
-    # -----------------------
-    # VALOR TOTAL (melhorado)
-    # -----------------------
-    valores = re.findall(r"R\$\s*([\d\.\,]+)", texto)
-
+    # VALOR TOTAL
+    valores = re.findall(r"[\d]{1,3}(?:\.\d{3})*,\d{2}", texto)
     if valores:
-        # pega o maior valor (geralmente é o total da nota)
         valores_float = [float(v.replace('.', '').replace(',', '.')) for v in valores]
         valor = max(valores_float)
 
-    return fornecedor, cnpj, data, valor
-    fornecedor = ""
-    cnpj = ""
-    valor = 0
-    data = ""
+    # ICMS
+    icms_match = re.search(r"ICMS.*?([\d\.,]+)", texto)
+    if icms_match:
+        try:
+            icms = float(icms_match.group(1).replace('.', '').replace(',', '.'))
+        except:
+            pass
 
-    cnpj_match = re.search(r"\d{2}\.\d{3}\.\d{3}/\d{4}-\d{2}", texto)
-    if cnpj_match:
-        cnpj = cnpj_match.group()
+    # IPI
+    ipi_match = re.search(r"IPI.*?([\d\.,]+)", texto)
+    if ipi_match:
+        try:
+            ipi = float(ipi_match.group(1).replace('.', '').replace(',', '.'))
+        except:
+            pass
 
-    data_match = re.search(r"\d{2}/\d{2}/\d{4}", texto)
-    if data_match:
-        data = data_match.group()
+    # Tributos aproximados
+    trib_match = re.search(r"R\$\s*([\d\.,]+)", texto)
+    if trib_match:
+        try:
+            tributos_aprox = float(trib_match.group(1).replace('.', '').replace(',', '.'))
+        except:
+            pass
 
-    valor_match = re.search(r"R\$\\s*([\\d\\.]+,\\d{2})", texto)
-    if valor_match:
-        valor = float(valor_match.group(1).replace('.', '').replace(',', '.'))
-
+    # FORNECEDOR
     for linha in texto.split("\n"):
         if "RECEBEMOS DE" in linha:
             fornecedor = linha.replace("RECEBEMOS DE", "").split("OS PRODUTOS")[0].strip()
 
-    return fornecedor, cnpj, data, valor
+    return fornecedor, cnpj, data, valor, icms, ipi, tributos_aprox
 
 def salvar_dados(dados):
-    c.execute("INSERT INTO notas (fornecedor, cnpj, data, valor) VALUES (?, ?, ?, ?)", dados)
+    c.execute("""
+    INSERT INTO notas 
+    (fornecedor, cnpj, data, valor, icms, ipi, tributos_aprox)
+    VALUES (?, ?, ?, ?, ?, ?, ?)
+    """, dados)
     conn.commit()
 
 def carregar_dados():
@@ -134,7 +135,10 @@ if menu == "Upload":
     if arquivos:
         for file in arquivos:
             texto = extrair_texto_pdf(file)
-            fornecedor, cnpj, data, valor = extrair_dados(texto)
+            fornecedor, cnpj, data, valor, icms, ipi, tributos_aprox = extrair_dados(texto)
+            icms = st.number_input("ICMS", value=float(icms), key=file.name+"i")
+ipi = st.number_input("IPI", value=float(ipi), key=file.name+"ipi")
+tributos_aprox = st.number_input("Tributos Aproximados", value=float(tributos_aprox), key=file.name+"t")
 
             st.subheader(file.name)
 
@@ -144,7 +148,7 @@ if menu == "Upload":
             valor = st.number_input("Valor", value=float(valor), key=file.name+"v")
 
             if st.button("Salvar", key=file.name):
-                salvar_dados((fornecedor, cnpj, data, valor))
+                salvar_dados((fornecedor, cnpj, data, valor, icms, ipi, tributos_aprox))
                 st.success("Salvo!")
 
 elif menu == "Base":
@@ -272,6 +276,21 @@ elif menu == "Dashboard":
 
         st.subheader("Top Fornecedores")
         st.bar_chart(df.groupby('fornecedor')['valor'].sum().sort_values(ascending=False).head(10))
+        st.subheader("Top Fornecedores")
+st.bar_chart(df.groupby('fornecedor')['valor'].sum().sort_values(ascending=False).head(10))
+
+# 👇 COLE AQUI 👇
+st.subheader("💰 Impostos Totais")
+
+total_impostos = df['tributos_aprox'].sum()
+total_geral = df['valor'].sum()
+
+percentual = (total_impostos / total_geral * 100) if total_geral > 0 else 0
+
+col1, col2 = st.columns(2)
+
+col1.metric("Total em Tributos", f"R$ {total_impostos:,.2f}")
+col2.metric("Carga Tributária (%)", f"{percentual:.2f}%")
 
         st.metric("Total Geral", f"R$ {df['valor'].sum():,.2f}")
     else:
