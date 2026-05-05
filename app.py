@@ -208,5 +208,4 @@ elif menu == "Dashboard":
         col2.metric("Carga Tributária (%)", f"{percentual:.2f}%")
 
         st.metric("Total Geral", f"R$ {df['valor'].sum():,.2f}")
-    else:
-        st.warning("Sem dados ainda")
+   
