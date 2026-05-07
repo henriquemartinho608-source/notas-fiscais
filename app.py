@@ -77,6 +77,7 @@ def extrair_texto_ocr(file):
 
 
 
+
 def extrair_dados(texto):
     fornecedor = ""
     cnpj = ""
@@ -108,24 +109,64 @@ def extrair_dados(texto):
     valores = re.findall(r"[\d]{1,3}(?:\.\d{3})*,\d{2}", texto)
 
     if valores:
-        valores_float = [
-            float(v.replace('.', '').replace(',', '.'))
-            for v in valores
-        ]
+        valores_float = []
 
-        valor = max(valores_float)
+        for v in valores:
+            try:
+                valores_float.append(
+                    float(v.replace(".", "").replace(",", "."))
+                )
+            except:
+                pass
+
+        if valores_float:
+            valor = max(valores_float)
 
     # -----------------------
     # ICMS
     # -----------------------
-    icms_match = re.search(r"ICMS.*?([\d\.,]+)", texto)
+    icms_match = re.search(r"VALOR DO ICMS\s*([\d\.,]+)", texto)
 
     if icms_match:
         try:
             icms = float(
                 icms_match.group(1)
-                .replace('.', '')
-                .replace(',', '.')
+                .replace(".", "")
+                .replace(",", ".")
+            )
+        except:
+            pass
+
+    # -----------------------
+    # IPI
+    # -----------------------
+    ipi_match = re.search(r"VALOR DO IPI\s*([\d\.,]+)", texto)
+
+    if ipi_match:
+        try:
+            ipi = float(
+                ipi_match.group(1)
+                .replace(".", "")
+                .replace(",", ".")
+            )
+        except:
+            pass
+
+    # -----------------------
+    # ICMS ST
+    # -----------------------
+    tributos_encontrados = re.findall(
+        r"ICMS ST:\s*R\$\s*([\d\.,]+)",
+        texto,
+        re.IGNORECASE
+    )
+
+    total_st = 0
+
+    for valor_st in tributos_encontrados:
+        try:
+            total_st += float(
+                valor_st.replace(".", "").replace(",", ".")
             )
         except:
             pass
@@ -133,76 +174,38 @@ def extrair_dados(texto):
     tributos_aprox = total_st + icms + ipi
 
     # -----------------------
-    # IPI
+    # FORNECEDOR VIA API
     # -----------------------
-    ipi_match = re.search(r"IPI.*?([\d\.,]+)", texto)
+    if cnpj:
+        fornecedor_api = buscar_cnpj(cnpj)
 
-    if ipi_match:
-        try:
-            ipi = float(
-                ipi_match.group(1)
-                .replace('.', '')
-                .replace(',', '.')
-            )
-        except:
-            pass
+        if fornecedor_api:
+            fornecedor = fornecedor_api
 
-    # -----------------------
-# TRIBUTOS (ICMS ST + ICMS + IPI)
-# -----------------------
+    # fallback
+    if fornecedor == "":
+        linhas = texto.split("\n")
 
-tributos_encontrados = re.findall(
-    r"ICMS ST:\s*R\$\s*([\d\.,]+)",
-    texto,
-    re.IGNORECASE
-)
+        for i, linha in enumerate(linhas):
 
-total_st = 0
-
-for valor_st in tributos_encontrados:
-    try:
-        total_st += float(
-            valor_st.replace(".", "").replace(",", ".")
-        )
-    except:
-        pass
-
-tributos_aprox = total_st + icms + ipi
-
-# -----------------------
-# FORNECEDOR VIA API CNPJ
-# -----------------------
-if cnpj:
-    fornecedor_api = buscar_cnpj(cnpj)
-
-    if fornecedor_api:
-        fornecedor = fornecedor_api
-
-# fallback
-if fornecedor == "":
-    linhas = texto.split("\n")
-
-    for i, linha in enumerate(linhas):
-
-        if "RECEBEMOS DE" in linha.upper():
-            fornecedor = (
-                linha.upper()
-                .replace("RECEBEMOS DE", "")
-                .split("OS PRODUTOS")[0]
-                .strip()
-            )
-            break
-
-        if "CNPJ" in linha.upper():
-            if i > 0:
-                fornecedor = linhas[i - 1].strip()
+            if "RECEBEMOS DE" in linha.upper():
+                fornecedor = (
+                    linha.upper()
+                    .replace("RECEBEMOS DE", "")
+                    .split("OS PRODUTOS")[0]
+                    .strip()
+                )
                 break
 
-if fornecedor == "":
-    fornecedor = "Não identificado"
+            if "CNPJ" in linha.upper():
+                if i > 0:
+                    fornecedor = linhas[i - 1].strip()
+                    break
+
+    if fornecedor == "":
+        fornecedor = "Não identificado"
 
     return fornecedor, cnpj, data, valor, icms, ipi, tributos_aprox
-
 
 
 def salvar_dados(dados):
