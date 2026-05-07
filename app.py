@@ -78,8 +78,8 @@ def extrair_texto_ocr(file):
 
 
 
-def extrair_dados(texto):
-    fornecedor = ""
+    def extrair_dados(texto):
+    return fornecedor = ""
     cnpj = ""
     valor = 0
     data = ""
