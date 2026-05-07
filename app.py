@@ -193,7 +193,7 @@ def extrair_dados(texto):
         fornecedor = "Não identificado"
 
     return fornecedor, cnpj, data, valor, icms, ipi, tributos_aprox
-```
+
 
 
 def salvar_dados(dados):
@@ -228,11 +228,29 @@ if menu == "Upload":
             fornecedor = st.text_input("Fornecedor", fornecedor, key=file.name+"f")
             cnpj = st.text_input("CNPJ", cnpj, key=file.name+"c")
             data = st.text_input("Data", data, key=file.name+"d")
-            valor = st.number_input("Valor", value=float(valor), key=file.name+"v")
+            valor = st.number_input(
+    "Valor",
+    value=float(valor or 0),
+    key=file.name+"v"
+)
 
-            icms = st.number_input("ICMS", value=float(icms), key=file.name+"i")
-            ipi = st.number_input("IPI", value=float(ipi), key=file.name+"ipi")
-            tributos_aprox = st.number_input("Tributos Aproximados", value=float(tributos_aprox), key=file.name+"t")
+icms = st.number_input(
+    "ICMS",
+    value=float(icms or 0),
+    key=file.name+"i"
+)
+
+ipi = st.number_input(
+    "IPI",
+    value=float(ipi or 0),
+    key=file.name+"ipi"
+)
+
+tributos_aprox = st.number_input(
+    "Tributos Aproximados",
+    value=float(tributos_aprox or 0),
+    key=file.name+"t"
+)
 
             if st.button("Salvar", key=file.name):
                 salvar_dados((fornecedor, cnpj, data, valor, icms, ipi, tributos_aprox))
@@ -292,10 +310,11 @@ elif menu == "Dashboard":
         # -----------------------
         # EVOLUÇÃO MENSAL
         # -----------------------
-        df['mes'] = df['data'].dt.to_period('M')
+        df['mes'] = df['data'].dt.strftime('%Y-%m')
 
         st.subheader("📈 Evolução de Compras (Mensal)")
-        st.bar_chart(df.groupby('mes')['valor'].sum())
+        evolucao = df.groupby('mes')['valor'].sum()
+        st.bar_chart(evolucao)
 
         # -----------------------
         # TOP FORNECEDORES
