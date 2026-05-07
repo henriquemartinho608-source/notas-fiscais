@@ -74,6 +74,9 @@ def extrair_texto_ocr(file):
         return result['ParsedResults'][0]['ParsedText']
     except:
         return ""
+
+
+```python
 def extrair_dados(texto):
     fornecedor = ""
     cnpj = ""
@@ -83,105 +86,102 @@ def extrair_dados(texto):
     ipi = 0
     tributos_aprox = 0
 
+    # -----------------------
     # CNPJ
+    # -----------------------
     cnpj_match = re.search(r"\d{2}\.\d{3}\.\d{3}/\d{4}-\d{2}", texto)
+
     if cnpj_match:
         cnpj = cnpj_match.group()
 
+    # -----------------------
     # DATA
+    # -----------------------
     datas = re.findall(r"\d{2}/\d{2}/\d{4}", texto)
+
     if datas:
         data = datas[0]
 
+    # -----------------------
     # VALOR TOTAL
+    # -----------------------
     valores = re.findall(r"[\d]{1,3}(?:\.\d{3})*,\d{2}", texto)
+
     if valores:
-        valores_float = [float(v.replace('.', '').replace(',', '.')) for v in valores]
+        valores_float = [
+            float(v.replace('.', '').replace(',', '.'))
+            for v in valores
+        ]
+
         valor = max(valores_float)
 
+    # -----------------------
     # ICMS
+    # -----------------------
     icms_match = re.search(r"ICMS.*?([\d\.,]+)", texto)
+
     if icms_match:
         try:
-            icms = float(icms_match.group(1).replace('.', '').replace(',', '.'))
+            icms = float(
+                icms_match.group(1)
+                .replace('.', '')
+                .replace(',', '.')
+            )
         except:
             pass
 
+    # -----------------------
     # IPI
+    # -----------------------
     ipi_match = re.search(r"IPI.*?([\d\.,]+)", texto)
+
     if ipi_match:
         try:
-            ipi = float(ipi_match.group(1).replace('.', '').replace(',', '.'))
+            ipi = float(
+                ipi_match.group(1)
+                .replace('.', '')
+                .replace(',', '.')
+            )
         except:
             pass
 
-    # Tributos aproximados
+    # -----------------------
+    # TRIBUTOS
+    # -----------------------
     trib_match = re.search(r"R\$\s*([\d\.,]+)", texto)
+
     if trib_match:
         try:
-            tributos_aprox = float(trib_match.group(1).replace('.', '').replace(',', '.'))
+            tributos_aprox = float(
+                trib_match.group(1)
+                .replace('.', '')
+                .replace(',', '.')
+            )
         except:
             pass
 
-def extrair_dados(texto):
-    fornecedor = ""
-    cnpj = ""
-    valor = 0
-    data = ""
-    icms = 0
-    ipi = 0
-    tributos_aprox = 0
-
-    cnpj_match = re.search(r"\d{2}\.\d{3}\.\d{3}/\d{4}-\d{2}", texto)
-    if cnpj_match:
-        cnpj = cnpj_match.group()
-
-    datas = re.findall(r"\d{2}/\d{2}/\d{4}", texto)
-    if datas:
-        data = datas[0]
-
-    valores = re.findall(r"[\d]{1,3}(?:\.\d{3})*,\d{2}", texto)
-    if valores:
-        valores_float = [float(v.replace('.', '').replace(',', '.')) for v in valores]
-        valor = max(valores_float)
-
-    icms_match = re.search(r"ICMS.*?([\d\.,]+)", texto)
-    if icms_match:
-        try:
-            icms = float(icms_match.group(1).replace('.', '').replace(',', '.'))
-        except:
-            pass
-
-    ipi_match = re.search(r"IPI.*?([\d\.,]+)", texto)
-    if ipi_match:
-        try:
-            ipi = float(ipi_match.group(1).replace('.', '').replace(',', '.'))
-        except:
-            pass
-
-    trib_match = re.search(r"R\$\s*([\d\.,]+)", texto)
-    if trib_match:
-        try:
-            tributos_aprox = float(trib_match.group(1).replace('.', '').replace(',', '.'))
-        except:
-            pass
-
-    # 🔥 ESSA LINHA ESTAVA FALTANDO
-    return fornecedor, cnpj, data, valor, icms, ipi, tributos_aprox
-
-    fornecedor = ""
-
+    # -----------------------
+    # FORNECEDOR VIA API CNPJ
+    # -----------------------
     if cnpj:
         fornecedor_api = buscar_cnpj(cnpj)
+
         if fornecedor_api:
             fornecedor = fornecedor_api
 
+    # fallback
     if fornecedor == "":
         linhas = texto.split("\n")
 
         for i, linha in enumerate(linhas):
+
             if "RECEBEMOS DE" in linha.upper():
-                fornecedor = linha.upper().replace("RECEBEMOS DE", "").split("OS PRODUTOS")[0].strip()
+                fornecedor = (
+                    linha.upper()
+                    .replace("RECEBEMOS DE", "")
+                    .split("OS PRODUTOS")[0]
+                    .strip()
+                )
                 break
 
             if "CNPJ" in linha.upper():
@@ -193,6 +193,8 @@ def extrair_dados(texto):
         fornecedor = "Não identificado"
 
     return fornecedor, cnpj, data, valor, icms, ipi, tributos_aprox
+```
+
 
 def salvar_dados(dados):
     c.execute("""
@@ -258,9 +260,7 @@ elif menu == "Base":
                 conn.commit()
                 st.success("Nota excluída!")
                 st.rerun()
-    st.title("📄 Base de Dados")
-    df = carregar_dados()
-    st.dataframe(df, use_container_width=True)
+    
 elif menu == "Dashboard":
     st.title("📊 Dashboard de Compras")
 
