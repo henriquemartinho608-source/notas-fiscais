@@ -172,6 +172,9 @@ def extrair_dados(texto):
             pass
 
     tributos_aprox = total_st + icms + ipi
+    # Corrigir valores absurdos do OCR
+if tributos_aprox > valor:
+    tributos_aprox = tributos_aprox / 100
 
     # -----------------------
     # FORNECEDOR VIA API
