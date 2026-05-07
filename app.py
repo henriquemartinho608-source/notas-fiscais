@@ -168,37 +168,38 @@ for valor_st in tributos_encontrados:
         pass
 
 tributos_aprox = total_st + icms + ipi
-    # -----------------------
-    # FORNECEDOR VIA API CNPJ
-    # -----------------------
-    if cnpj:
-        fornecedor_api = buscar_cnpj(cnpj)
 
-        if fornecedor_api:
-            fornecedor = fornecedor_api
+# -----------------------
+# FORNECEDOR VIA API CNPJ
+# -----------------------
+if cnpj:
+    fornecedor_api = buscar_cnpj(cnpj)
 
-    # fallback
-    if fornecedor == "":
-        linhas = texto.split("\n")
+    if fornecedor_api:
+        fornecedor = fornecedor_api
 
-        for i, linha in enumerate(linhas):
+# fallback
+if fornecedor == "":
+    linhas = texto.split("\n")
 
-            if "RECEBEMOS DE" in linha.upper():
-                fornecedor = (
-                    linha.upper()
-                    .replace("RECEBEMOS DE", "")
-                    .split("OS PRODUTOS")[0]
-                    .strip()
-                )
+    for i, linha in enumerate(linhas):
+
+        if "RECEBEMOS DE" in linha.upper():
+            fornecedor = (
+                linha.upper()
+                .replace("RECEBEMOS DE", "")
+                .split("OS PRODUTOS")[0]
+                .strip()
+            )
+            break
+
+        if "CNPJ" in linha.upper():
+            if i > 0:
+                fornecedor = linhas[i - 1].strip()
                 break
 
-            if "CNPJ" in linha.upper():
-                if i > 0:
-                    fornecedor = linhas[i - 1].strip()
-                    break
-
-    if fornecedor == "":
-        fornecedor = "Não identificado"
+if fornecedor == "":
+    fornecedor = "Não identificado"
 
     return fornecedor, cnpj, data, valor, icms, ipi, tributos_aprox
 
