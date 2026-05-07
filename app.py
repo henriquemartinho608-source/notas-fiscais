@@ -148,20 +148,26 @@ def extrair_dados(texto):
             pass
 
     # -----------------------
-    # TRIBUTOS
-    # -----------------------
-    trib_match = re.search(r"R\$\s*([\d\.,]+)", texto)
+# TRIBUTOS (ICMS ST + ICMS + IPI)
+# -----------------------
 
-    if trib_match:
-        try:
-            tributos_aprox = float(
-                trib_match.group(1)
-                .replace('.', '')
-                .replace(',', '.')
+tributos_encontrados = re.findall(
+    r"ICMS ST:\s*R\$\s*([\d\.,]+)",
+    texto,
+    re.IGNORECASE
+)
+
+total_st = 0
+
+for valor_st in tributos_encontrados:
+    try:
+        total_st += float(
+            valor_st.replace(".", "").replace(",", ".")
         )
     except:
         pass
 
+tributos_aprox = total_st + icms + ipi
     # -----------------------
     # FORNECEDOR VIA API CNPJ
     # -----------------------
