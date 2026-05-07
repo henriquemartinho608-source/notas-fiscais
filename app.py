@@ -130,6 +130,8 @@ def extrair_dados(texto):
         except:
             pass
 
+    tributos_aprox = total_st + icms + ipi
+
     # -----------------------
     # IPI
     # -----------------------
@@ -156,9 +158,9 @@ def extrair_dados(texto):
                 trib_match.group(1)
                 .replace('.', '')
                 .replace(',', '.')
-            )
-        except:
-            pass
+        )
+    except:
+        pass
 
     # -----------------------
     # FORNECEDOR VIA API CNPJ
