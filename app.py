@@ -172,9 +172,12 @@ def extrair_dados(texto):
             pass
 
     tributos_aprox = total_st + icms + ipi
+
+    tributos_aprox = total_st + icms + ipi
+
     # Corrigir valores absurdos do OCR
-if tributos_aprox > valor:
-    tributos_aprox = tributos_aprox / 100
+    if tributos_aprox > valor:
+        tributos_aprox = tributos_aprox / 100
 
     # -----------------------
     # FORNECEDOR VIA API
@@ -209,7 +212,6 @@ if tributos_aprox > valor:
         fornecedor = "Não identificado"
 
     return fornecedor, cnpj, data, valor, icms, ipi, tributos_aprox
-
 
 def salvar_dados(dados):
     c.execute("""
