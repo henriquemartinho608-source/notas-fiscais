@@ -76,7 +76,7 @@ def extrair_texto_ocr(file):
         return ""
 
 
-```python
+
 def extrair_dados(texto):
     fornecedor = ""
     cnpj = ""
