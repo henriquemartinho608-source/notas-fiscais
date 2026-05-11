@@ -104,23 +104,50 @@ def extrair_dados(texto):
         data = datas[0]
 
     # -----------------------
-    # VALOR TOTAL
+    # VALOR TOTAL DA NOTA
     # -----------------------
-    valores = re.findall(r"[\d]{1,3}(?:\.\d{3})*,\d{2}", texto)
 
-    if valores:
-        valores_float = []
+valor_match = re.search(
+    r"VALOR TOTAL DA NOTA\s*R?\$?\s*([\d\.\,]+)",
+    texto,
+    re.IGNORECASE
+)
 
-        for v in valores:
-            try:
-                valores_float.append(
-                    float(v.replace(".", "").replace(",", "."))
-                )
-            except:
-                pass
+if valor_match:
+    try:
+        valor = float(
+            valor_match.group(1)
+            .replace(".", "")
+            .replace(",", ".")
+        )
+    except:
+        valor = 0
 
-        if valores_float:
-            valor = max(valores_float)
+# fallback
+if valor == 0:
+
+    valores = re.findall(
+        r"[\d]{1,3}(?:\.\d{3})*,\d{2}",
+        texto
+    )
+
+    valores_float = []
+
+    for v in valores:
+        try:
+            numero = float(
+                v.replace(".", "").replace(",", ".")
+            )
+
+            # evita pegar pesos absurdos
+            if numero < 100000:
+                valores_float.append(numero)
+
+        except:
+            pass
+
+    if valores_float:
+        valor = max(valores_float)
 
     # -----------------------
     # ICMS
