@@ -106,53 +106,55 @@ def extrair_dados(texto):
     # -----------------------
     # VALOR TOTAL DA NOTA
     # -----------------------
-
-valor_match = re.search(
-    r"VALOR TOTAL DA NOTA\s*R?\$?\s*([\d\.\,]+)",
-    texto,
-    re.IGNORECASE
-)
-
-if valor_match:
-    try:
-        valor = float(
-            valor_match.group(1)
-            .replace(".", "")
-            .replace(",", ".")
-        )
-    except:
-        valor = 0
-
-# fallback
-if valor == 0:
-
-    valores = re.findall(
-        r"[\d]{1,3}(?:\.\d{3})*,\d{2}",
-        texto
+    valor_match = re.search(
+        r"VALOR TOTAL DA NOTA\s*R?\$?\s*([\d\.\,]+)",
+        texto,
+        re.IGNORECASE
     )
 
-    valores_float = []
-
-    for v in valores:
+    if valor_match:
         try:
-            numero = float(
-                v.replace(".", "").replace(",", ".")
+            valor = float(
+                valor_match.group(1)
+                .replace(".", "")
+                .replace(",", ".")
             )
-
-            # evita pegar pesos absurdos
-            if numero < 100000:
-                valores_float.append(numero)
-
         except:
-            pass
+            valor = 0
 
-    if valores_float:
-        valor = max(valores_float)
+    # fallback
+    if valor == 0:
+
+        valores = re.findall(
+            r"[\d]{1,3}(?:\.\d{3})*,\d{2}",
+            texto
+        )
+
+        valores_float = []
+
+        for v in valores:
+            try:
+                numero = float(
+                    v.replace(".", "").replace(",", ".")
+                )
+
+                if numero < 100000:
+                    valores_float.append(numero)
+
+            except:
+                pass
+
+        if valores_float:
+            valor = max(valores_float)
 
     # -----------------------
     # ICMS
     # -----------------------
-    icms_match = re.search(r"VALOR DO ICMS\s*([\d\.,]+)", texto)
+    icms_match = re.search(
+        r"VALOR DO ICMS\s*R?\$?\s*([\d\.,]+)",
+        texto,
+        re.IGNORECASE
+    )
 
     if icms_match:
         try:
@@ -167,7 +169,11 @@ if valor == 0:
     # -----------------------
     # IPI
     # -----------------------
-    ipi_match = re.search(r"VALOR DO IPI\s*([\d\.,]+)", texto)
+    ipi_match = re.search(
+        r"VALOR DO IPI\s*R?\$?\s*([\d\.,]+)",
+        texto,
+        re.IGNORECASE
+    )
 
     if ipi_match:
         try:
@@ -180,34 +186,36 @@ if valor == 0:
             pass
 
     # -----------------------
-    # ICMS ST
+    # TRIBUTOS APROXIMADOS
     # -----------------------
-    tributos_encontrados = re.findall(
-        r"ICMS ST:\s*R\$\s*([\d\.,]+)",
-        texto,
-        re.IGNORECASE
+    trib_match = re.search(
+        r"Federal R\$(.*?)Estadual R\$(.*?)\(",
+        texto
     )
 
-    total_st = 0
-
-    for valor_st in tributos_encontrados:
+    if trib_match:
         try:
-            total_st += float(
-                valor_st.replace(".", "").replace(",", ".")
+            federal = float(
+                trib_match.group(1)
+                .replace(".", "")
+                .replace(",", ".")
+                .strip()
             )
+
+            estadual = float(
+                trib_match.group(2)
+                .replace(".", "")
+                .replace(",", ".")
+                .strip()
+            )
+
+            tributos_aprox = federal + estadual
+
         except:
             pass
 
-    tributos_aprox = total_st + icms + ipi
-
-    tributos_aprox = total_st + icms + ipi
-
-    # Corrigir valores absurdos do OCR
-    if tributos_aprox > valor:
-        tributos_aprox = tributos_aprox / 100
-
     # -----------------------
-    # FORNECEDOR VIA API
+    # FORNECEDOR
     # -----------------------
     if cnpj:
         fornecedor_api = buscar_cnpj(cnpj)
@@ -215,7 +223,6 @@ if valor == 0:
         if fornecedor_api:
             fornecedor = fornecedor_api
 
-    # fallback
     if fornecedor == "":
         linhas = texto.split("\n")
 
@@ -229,11 +236,6 @@ if valor == 0:
                     .strip()
                 )
                 break
-
-            if "CNPJ" in linha.upper():
-                if i > 0:
-                    fornecedor = linhas[i - 1].strip()
-                    break
 
     if fornecedor == "":
         fornecedor = "Não identificado"
