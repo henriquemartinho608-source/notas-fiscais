@@ -324,7 +324,7 @@ if menu == "Upload":
         total_notas = len(df_dashboard)
         total_impostos = df_dashboard['tributos_aprox'].sum()
 
-            st.markdown('</div>', unsafe_allow_html=True)
+    st.markdown('</div>', unsafe_allow_html=True)
     st.title("📄 Base de Dados")
 
     df = carregar_dados()
