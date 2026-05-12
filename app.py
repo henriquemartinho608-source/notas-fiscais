@@ -257,83 +257,74 @@ menu = st.sidebar.selectbox("Menu", ["Upload", "Base", "Dashboard"])
 
 if menu == "Upload":
 
-    st.title("📤 Upload de Notas")
+    # -----------------------------
+    # HEADER
+    # -----------------------------
+    st.markdown("""
+    <style>
+    .main {
+        background-color: #f5f7fb;
+    }
 
-    arquivos = st.file_uploader(
-        "Envie PDFs",
-        type=["pdf"],
-        accept_multiple_files=True
-    )
+    .titulo {
+        font-size: 42px;
+        font-weight: 700;
+        color: #1f2937;
+        margin-bottom: 5px;
+    }
 
-    if arquivos:
+    .subtitulo {
+        font-size: 18px;
+        color: #6b7280;
+        margin-bottom: 30px;
+    }
 
-        for file in arquivos:
+    .card {
+        background-color: white;
+        padding: 30px;
+        border-radius: 18px;
+        box-shadow: 0px 4px 15px rgba(0,0,0,0.08);
+        margin-bottom: 20px;
+    }
 
-            texto = extrair_texto_pdf(file)
+    .kpi {
+        background: linear-gradient(135deg, #2563eb, #1d4ed8);
+        padding: 20px;
+        border-radius: 18px;
+        color: white;
+        text-align: center;
+    }
 
-            fornecedor, cnpj, data, valor, icms, ipi, tributos_aprox = extrair_dados(texto)
+    .kpi h1 {
+        font-size: 32px;
+        margin: 0;
+    }
 
-            st.subheader(file.name)
+    .kpi p {
+        margin: 0;
+        font-size: 14px;
+    }
+    </style>
+    """, unsafe_allow_html=True)
 
-            fornecedor = st.text_input(
-                "Fornecedor",
-                fornecedor,
-                key=file.name + "f"
-            )
+    st.markdown('<div class="titulo">📊 Gestão Inteligente de Compras</div>', unsafe_allow_html=True)
+    st.markdown('<div class="subtitulo">Upload automático de notas fiscais • OCR • Análise tributária • Dashboard executivo</div>', unsafe_allow_html=True)
 
-            cnpj = st.text_input(
-                "CNPJ",
-                cnpj,
-                key=file.name + "c"
-            )
+    # -----------------------------
+    # KPIs SUPERIORES
+    # -----------------------------
+    df_dashboard = carregar_dados()
 
-            data = st.text_input(
-                "Data",
-                data,
-                key=file.name + "d"
-            )
+    total_compras = 0
+    total_notas = 0
+    total_impostos = 0
 
-            valor = st.number_input(
-                "Valor",
-                value=float(valor or 0),
-                key=file.name + "v"
-            )
+    if not df_dashboard.empty:
+        total_compras = df_dashboard['valor'].sum()
+        total_notas = len(df_dashboard)
+        total_impostos = df_dashboard['tributos_aprox'].sum()
 
-            icms = st.number_input(
-                "ICMS",
-                value=float(icms or 0),
-                key=file.name + "i"
-            )
-
-            ipi = st.number_input(
-                "IPI",
-                value=float(ipi or 0),
-                key=file.name + "ipi"
-            )
-
-            tributos_aprox = st.number_input(
-                "Tributos Aproximados",
-                value=float(tributos_aprox or 0),
-                key=file.name + "t"
-            )
-
-            if st.button("Salvar", key=file.name):
-
-                salvar_dados(
-                    (
-                        fornecedor,
-                        cnpj,
-                        data,
-                        valor,
-                        icms,
-                        ipi,
-                        tributos_aprox
-                    )
-                )
-
-                st.success("Salvo!")        
-
-elif menu == "Base":
+            st.markdown('</div>', unsafe_allow_html=True)
     st.title("📄 Base de Dados")
 
     df = carregar_dados()
