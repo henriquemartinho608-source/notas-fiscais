@@ -256,96 +256,78 @@ def carregar_dados():
 menu = st.sidebar.selectbox("Menu", ["Upload", "Base", "Dashboard"])
 
 if menu == "Upload":
+    st.title("📤 Upload de Notas")
 
-    # -----------------------------
-    # HEADER
-    # -----------------------------
-    st.markdown("""
-    <style>
-    .main {
-        background-color: #f5f7fb;
-    }
+    arquivos = st.file_uploader(
+        "Envie PDFs",
+        type=["pdf"],
+        accept_multiple_files=True
+    )
 
-    .titulo {
-        font-size: 42px;
-        font-weight: 700;
-        color: #1f2937;
-        margin-bottom: 5px;
-    }
+    if arquivos:
+        for file in arquivos:
 
-    .subtitulo {
-        font-size: 18px;
-        color: #6b7280;
-        margin-bottom: 30px;
-    }
+            texto = extrair_texto_pdf(file)
 
-    .card {
-        background-color: white;
-        padding: 30px;
-        border-radius: 18px;
-        box-shadow: 0px 4px 15px rgba(0,0,0,0.08);
-        margin-bottom: 20px;
-    }
+            fornecedor, cnpj, data, valor, icms, ipi, tributos_aprox = extrair_dados(texto)
 
-    .kpi {
-        background: linear-gradient(135deg, #2563eb, #1d4ed8);
-        padding: 20px;
-        border-radius: 18px;
-        color: white;
-        text-align: center;
-    }
+            st.subheader(file.name)
 
-    .kpi h1 {
-        font-size: 32px;
-        margin: 0;
-    }
+            fornecedor = st.text_input(
+                "Fornecedor",
+                fornecedor,
+                key=file.name+"f"
+            )
 
-    .kpi p {
-        margin: 0;
-        font-size: 14px;
-    }
-    </style>
-    """, unsafe_allow_html=True)
+            cnpj = st.text_input(
+                "CNPJ",
+                cnpj,
+                key=file.name+"c"
+            )
 
-    st.markdown('<div class="titulo">📊 Gestão Inteligente de Compras</div>', unsafe_allow_html=True)
-    st.markdown('<div class="subtitulo">Upload automático de notas fiscais • OCR • Análise tributária • Dashboard executivo</div>', unsafe_allow_html=True)
+            data = st.text_input(
+                "Data",
+                data,
+                key=file.name+"d"
+            )
 
-    # -----------------------------
-    # KPIs SUPERIORES
-    # -----------------------------
-    df_dashboard = carregar_dados()
+            valor = st.number_input(
+                "Valor",
+                value=float(valor),
+                key=file.name+"v"
+            )
 
-    total_compras = 0
-    total_notas = 0
-    total_impostos = 0
+            icms = st.number_input(
+                "ICMS",
+                value=float(icms),
+                key=file.name+"i"
+            )
 
-    if not df_dashboard.empty:
-        total_compras = df_dashboard['valor'].sum()
-        total_notas = len(df_dashboard)
-        total_impostos = df_dashboard['tributos_aprox'].sum()
+            ipi = st.number_input(
+                "IPI",
+                value=float(ipi),
+                key=file.name+"ipi"
+            )
 
-    st.markdown('</div>', unsafe_allow_html=True)
-    st.title("📄 Base de Dados")
+            tributos_aprox = st.number_input(
+                "Tributos Aproximados",
+                value=float(tributos_aprox),
+                key=file.name+"t"
+            )
 
-    df = carregar_dados()
+            if st.button("Salvar", key=file.name):
 
-    if df.empty:
-        st.warning("Sem dados ainda")
-    else:
-        for i, row in df.iterrows():
-            col1, col2, col3, col4, col5, col6 = st.columns(6)
+                salvar_dados((
+                    fornecedor,
+                    cnpj,
+                    data,
+                    valor,
+                    icms,
+                    ipi,
+                    tributos_aprox
+                ))
 
-            col1.write(row['id'])
-            col2.write(row['fornecedor'])
-            col3.write(row['cnpj'])
-            col4.write(row['data'])
-            col5.write(f"R$ {row['valor']:.2f}")
-
-            if col6.button("❌ Excluir", key=row['id']):
-                c.execute("DELETE FROM notas2 WHERE id = ?", (row['id'],))
-                conn.commit()
-                st.success("Nota excluída!")
-                st.rerun()
+                st.success("Salvo!")
     
 elif menu == "Dashboard":
     st.title("📊 Dashboard de Compras")
