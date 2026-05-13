@@ -328,7 +328,7 @@ if menu == "Upload":
                 ))
 
                 st.success("Salvo!")
- elif menu == "Base":
+elif menu == "Base":
 
     st.title("📄 Base de Dados")
 
