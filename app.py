@@ -328,6 +328,52 @@ if menu == "Upload":
                 ))
 
                 st.success("Salvo!")
+ elif menu == "Base":
+
+    st.title("📄 Base de Dados")
+
+    df = carregar_dados()
+
+    if df.empty:
+        st.warning("Sem dados ainda")
+
+    else:
+
+        st.dataframe(
+            df,
+            use_container_width=True
+        )
+
+        st.divider()
+
+        st.subheader("🗑️ Excluir Notas")
+
+        for i, row in df.iterrows():
+
+            col1, col2, col3 = st.columns([6,2,2])
+
+            col1.write(
+                f"{row['fornecedor']} | "
+                f"R$ {row['valor']:,.2f}"
+            )
+
+            col2.write(row['data'])
+
+            if col3.button(
+                "❌ Excluir",
+                key=f"del_{row['id']}"
+            ):
+
+                c.execute(
+                    "DELETE FROM notas2 WHERE id = ?",
+                    (row['id'],)
+                )
+
+                conn.commit()
+
+                st.success("Nota excluída!")
+
+                st.rerun()               
     
 elif menu == "Dashboard":
     st.title("📊 Dashboard de Compras")
